@@ -29,9 +29,23 @@ export share="
 /home/main
 /root
 "
+
+export required_packages="
+x11-repo
+tur-repo
+"
 # -------------------------
 # End configuration
 # -------------------------
+
+check_package() {
+  package_check=$(dpkg-query -W --showformat='${Status}\n' "$1" | grep "install ok installed")
+  if [[ -z "$package_check" ]]; then
+    echo "0"
+  else
+    echo "1"
+  fi
+}
 
 start_x() {
   if [[ -z "$(ps aux | grep "app_process" | grep "com.termux.x11")" ]]; then
@@ -89,7 +103,11 @@ fi
 export ARGS=""
 
 while IFS= read -r line; do
-    echo "... $line ..."
+  if [[ ! -z "$line" ]]; then
+    export arr=(${line//:/ })
+    echo "${arr[0]}"
+    echo "${arr[1]}"
+  fi
 done <<< "$directories"
 
 if [[ "$1" == "qemu" ]]; then
