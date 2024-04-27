@@ -42,14 +42,14 @@ CPU_MODEL="Qualcomm Snapdragon 8 Gen 3 for Galaxy" ./start.sh update
 
 then, you can run it like normal with the spoofed CPU name
 
-#### `INSTALLDIR`:
+#### `INSTALL_DIR`:
 
 The place where everything gets installed into. This will create a new installation, and won't delete your old one
 
 For example, if you want to install to `${HOME}/fex_emu`, you can do:
 
 ```sh
-INSTALLDIR="${HOME}/fex_emu" ./start.sh fex main
+INSTALL_DIR="${HOME}/fex_emu" ./start.sh fex main
 ```
 
 #### `DIRECTORIES`:
