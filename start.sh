@@ -934,7 +934,7 @@ cat <<- EOF > "${INSTALL_DIR}/debian-arm64/install_fex.sh"
 export DEBIAN_FRONTEND=noninteractive
 apt update -y $APT_ARGS
 apt install apt-utils -y
-apt install git cmake ninja-build pkgconf ccache clang llvm lld libdrm-dev libxcb-present-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-glx0-dev libxcb-shm0-dev pkg-config libxshmfence-dev libclang-dev libsdl2-dev libepoxy-dev libssl-dev g++-x86-64-linux-gnu libgcc-12-dev-i386-cross libgcc-12-dev-amd64-cross nasm python3-clang libstdc++-12-dev-i386-cross libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross squashfs-tools libc6-dev-i386-amd64-cross lib32stdc++-12-dev-amd64-cross libc-bin -y $APT_ARGS
+apt install g++-multilib-i686-linux-gnu gcc-multilib-i686-linux-gnu g++-multilib-x86-64-linux-gnu gcc-multilib-x86-64-linux-gnu git cmake ninja-build pkgconf ccache clang llvm lld libdrm-dev libxcb-present-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-glx0-dev libxcb-shm0-dev pkg-config libxshmfence-dev libclang-dev libsdl2-dev libepoxy-dev libssl-dev g++-x86-64-linux-gnu libgcc-12-dev-i386-cross libgcc-12-dev-amd64-cross nasm python3-clang libstdc++-12-dev-i386-cross libstdc++-12-dev-amd64-cross libstdc++-12-dev-arm64-cross squashfs-tools libc6-dev-i386-amd64-cross lib32stdc++-12-dev-amd64-cross libc-bin -y $APT_ARGS
 cd /fex-install
 mkdir Build
 cd Build
