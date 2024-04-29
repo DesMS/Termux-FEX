@@ -928,7 +928,7 @@ if [[ ! -f "${INSTALL_DIR}/debian-arm64/debug/fex_installed" || "$1" == "update"
   rm -rf "${INSTALL_DIR}/debian-arm64/fex-install" &>/dev/null # Prevent directory is already there error
   git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git "${INSTALL_DIR}/debian-arm64/fex-install"
   # Apply CPU spoof
-  sed -i "$(grep -m1 -n "\"model name\\\\t:" "${INSTALL_DIR}/debian-arm64/fex-install/Source/Tools/LinuxEmulation/LinuxSyscalls/EmulatedFiles/EmulatedFiles.cpp" | cut -d: -f1)s/.*/cpu_stream << \"model name\\\\t: ${CPU_MODEL}\" << std::endl;/" "${INSTALLDIR}/debian-arm64/fex-install/Source/Tools/LinuxEmulation/LinuxSyscalls/EmulatedFiles/EmulatedFiles.cpp"
+  sed -i "$(grep -m1 -n "\"model name\\\\t:" "${INSTALL_DIR}/debian-arm64/fex-install/Source/Tools/LinuxEmulation/LinuxSyscalls/EmulatedFiles/EmulatedFiles.cpp" | cut -d: -f1)s/.*/cpu_stream << \"model name\\\\t: ${CPU_MODEL}\" << std::endl;/" "${INSTALL_DIR}/debian-arm64/fex-install/Source/Tools/LinuxEmulation/LinuxSyscalls/EmulatedFiles/EmulatedFiles.cpp"
 cat <<- EOF > "${INSTALL_DIR}/debian-arm64/install_fex.sh"
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
