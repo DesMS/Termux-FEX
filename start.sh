@@ -19,14 +19,17 @@
 # Please note that the shared directory *HAS* to be in your AMD64 install
 # 
 
+# Check if the user has set a custom CPU model, if not, set to Snapdragon 8 Gen 3
 if [[ -z "$CPU_MODEL" ]]; then
   export CPU_MODEL="Qualcomm Snapdragon 8 Gen 3"
 fi
 
+# Check if the user has set a custom install directory, if not, set to ~/.fex
 if [[ -z "$INSTALL_DIR" ]]; then
   export INSTALL_DIR="${HOME}/.fex"
 fi
 
+# These are the default directories, these are needed for a long list of support
 export DIRECTORIES="
 $DIRECTORIES
 ${TMPDIR}:/tmp
@@ -51,6 +54,7 @@ ${INSTALL_DIR}/fake/shm:/dev/shm
 /proc/self/fd/2:/dev/stderr
 "
 
+# These are some directories shared between AMD64 and ARM64
 export SHARED_DIRECTORIES="
 $SHARED_DIRECTORIES
 /home/main
@@ -61,6 +65,10 @@ $SHARED_DIRECTORIES
 /etc/gshadow
 "
 
+# Our required packages
+# Format:
+# {PACKAGE}:{REQUIRED_PACKAGE}
+# (If REQUIRED_PACKAGE = 0, then that means it's a package required by another (Ex repo packages)
 export required_packages="
 x11-repo:0
 proot:
@@ -77,9 +85,12 @@ openbox:x11-repo
 # End configuration
 # -------------------------
 
+# Never ask for user input
 export APT_ARGS="-o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confnew'"
 
+# Our custom check package function, it allows us to check if a package is installed
 check_package() {
+  # Query it, and see if it is installed, if it is, then we say 1, if not, 0
   package_check=$(dpkg-query -W --showformat='${Status}\n' "$1" 2> /dev/null | grep "install ok installed")
   if [[ -z "$package_check" ]]; then
     echo "0"
@@ -88,14 +99,16 @@ check_package() {
   fi
 }
 
+# This starts our x server
 start_x() {
+  # Check if termux x11 is running (There seems to be no way to shut it off once it starts)
   if [[ -z "$(ps aux | grep "app_process" | grep "com.termux.x11")" ]]; then
     echo "Starting x11 and OpenGL server"
     # Kill off all others servers
     pkill -9 virgl_test_server_android &>/dev/null
     pkill -9 pulseaudio &>/dev/null
     rm -rf ${TMPDIR}/* &>/dev/null
-    XDG_RUNTIME_DIR=${TMPDIR} virgl_test_server_android & # Adreno 750 GL support
+    XDG_RUNTIME_DIR=${TMPDIR} virgl_test_server_android & # GL support
     export GALLIUM_DRIVER=virpipe
     XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac & # Termux x11 for our x server
     export DISPLAY=:0
@@ -109,6 +122,7 @@ start_x() {
   fi
 }
 
+# This function just prints the usage
 print_usage() {
   echo -e "Usage: ./start.sh feature [user]\n"
   echo -e "\nAvailable Features:"
@@ -124,16 +138,22 @@ print_usage() {
   echo -e "\nTermux FEX v1.0.0"
 }
 
+# Store the pkg install commands (1 = required by another package, 2 = required)
 export install_1="pkg install"
 export install_2="pkg install"
 export needed_packages=""
+# Read all the lines for the required packages
 while IFS= read -r line; do
   if [[ ! -z "$line" ]]; then
+    # Unformat? them
     export arr=(${line//:/ })
     export package="${arr[0]}"
     export needed="${arr[1]}"
+    # Check if it's installed
     if [[ "$(check_package "$package")" == "0" ]]; then
+      # Check if it needs a package
       if [[ ! -z "$needed" ]]; then
+        # Check if it's a required package
         if [[ "$needed" == "0" ]]; then
           export needed_packages="${needed_packages}\n${package}"
           export install_1="${install_1} ${package}"
@@ -149,26 +169,35 @@ while IFS= read -r line; do
   fi
 done <<< "$required_packages"
 
+# Check if we need some packages
 if [[ ! -z "$needed_packages" ]]; then
   echo -e "You need to install:${needed_packages}\nBefore running this program.\n(You can run:)"
   export to_echo=""
+  # Check if the required packages is installed, so we don't need to print a useless line
   if [[ "$install_1" != "pkg install" ]]; then
     to_echo="${install_1}; "
   fi
   to_echo="${to_echo}${install_2}"
+  # Print the needed packages, and exit
   echo "$to_echo"
   exit 1
 fi
 
+# Check and create the install dir
 if [[ ! -d "${INSTALL_DIR}" ]]; then
   mkdir "${INSTALL_DIR}"
 fi
 
+# The FEX variable is just a shortened version for the path to the fex install
 export FEX=".fex-emu/RootFS/Debian_Bookworm"
+# Our base args (AMD64)
 export ARGS="-b ${INSTALL_DIR}/debian-amd64:/home/main/$FEX/ -b ${INSTALL_DIR}/debian-amd64:/root/$FEX/ -b ${INSTALL_DIR}/FEX:/home/main/.fex-emu -b ${INSTALL_DIR}/FEX:/root/.fex-emu"
 
+# Go through all the directories
 while IFS= read -r line; do
+  # If the line isn't empty
   if [[ ! -z "$line" ]]; then
+    # Parse the line, and add the binds to the args
     export arr=(${line//:/ })
     export source="${arr[0]}"
     export proot_out="${arr[1]}"
@@ -176,22 +205,28 @@ while IFS= read -r line; do
   fi
 done <<< "$DIRECTORIES"
 
+# Go through our shared directories
 while IFS= read -r line; do
+  # If the line isn't empty
   if [[ ! -z "$line" ]]; then
+    # Add the binds to the args
     export ARGS="$ARGS -b ${INSTALL_DIR}/debian-amd64${line}:${line}"
   fi
 done <<< "$SHARED_DIRECTORIES"
 
+# If we don't have the fake dir, create it
 if [[ ! -d "${INSTALL_DIR}/fake" ]]; then
   mkdir "${INSTALL_DIR}/fake"
 fi
 
+# spoofed /proc/loadavg
 if [[ ! -f "${INSTALL_DIR}/fake/loadavg" ]]; then
 cat <<- EOF > "${INSTALL_DIR}/fake/loadavg"
 0.12 0.07 0.02 2/165 765
 EOF
 fi
 
+# spoofed /proc/stat
 if [[ ! -f "${INSTALL_DIR}/fake/stat" ]]; then
 cat <<- EOF > "${INSTALL_DIR}/fake/stat"
 cpu  1957 0 2877 93280 262 342 254 87 0 0
@@ -213,18 +248,21 @@ softirq 75663 0 5903 6 25375 10774 0 243 11685 0 21677
 EOF
 fi
 
+# spoofed /proc/uptime
 if [[ ! -f "${INSTALL_DIR}/fake/uptime" ]]; then
 cat <<- EOF > "${INSTALL_DIR}/fake/uptime"
 124.08 932.80
 EOF
 fi
 
+# spoofed /proc/version
 if [[ ! -f "${INSTALL_DIR}/fake/version" ]]; then
 cat <<- EOF > "${INSTALL_DIR}/fake/version"
 Linux version 6.2.1-generic (proot@termux) (gcc (GCC) 12.2.1 20230201, GNU ld (GNU Binutils) 2.40) #1 SMP PREEMPT_DYNAMIC Wed, 01 Mar 2023 00:00:00 +0000
 EOF
 fi
 
+# spoofed /proc/vmstat
 if [[ ! -f "${INSTALL_DIR}/fake/vmstat" ]]; then
 cat <<- EOF > "${INSTALL_DIR}/fake/vmstat"
 nr_free_pages 1743136
@@ -408,30 +446,36 @@ nr_unstable 0
 EOF
 fi
 
+# spoofed /proc/sys/kernel/cap_last_cap
 if [[ ! -f "${INSTALL_DIR}/fake/sysctl_entry_cap_last_cap" ]]; then
 cat <<- EOF > "${INSTALL_DIR}/fake/sysctl_entry_cap_last_cap"
 40
 EOF
 fi
 
+# spoofed /dev/shm
 if [[ ! -d "${INSTALL_DIR}/fake/shm" ]]; then
   mkdir "${INSTALL_DIR}/fake/shm"
   chmod 777 "${INSTALL_DIR}/fake/shm"
 fi
 
+# Check if we have our FEX global config dir
 if [[ ! -d "${INSTALL_DIR}/FEX" ]]; then
   mkdir "${INSTALL_DIR}/FEX"
   chmod 777 "${INSTALL_DIR}/FEX"
 fi
 
+# Check if we have our vulkan dir, if not, get it!
 if [[ ! -d "${INSTALL_DIR}/vulkan" ]]; then
   curl -LJ "https://github.com/DesMS/adreno750-drivers/archive/refs/heads/main.zip" -o "${INSTALL_DIR}/vulkan.zip"
   unzip "${INSTALL_DIR}/vulkan.zip" -d "${INSTALL_DIR}"
   mv -f "${INSTALL_DIR}/adreno750-drivers-main" "${INSTALL_DIR}/vulkan"
 fi
 
+# Check if we have installed debian
 if [[ ! -d "${INSTALL_DIR}/debian-arm64" ]]; then
   echo "Creating debian-arm64"
+  # debootstrap results in a much faster root fs than if you get a pre installed one (Idk why)
   debootstrap \
   --variant=minbase \
   --exclude=systemd \
@@ -443,9 +487,12 @@ fi
 
 if [[ ! -d "${INSTALL_DIR}/debian-amd64" ]]; then
   echo "Creating debian-amd64"
+  # Create our custom debootstrap with x86_64 support
   cp "$(command -v debootstrap)" "${INSTALL_DIR}/debootstrap_x86_64"
+  # Use qemu-x86_64 to install it (Will result in an error)
   sed -i 's/proot/proot -q "qemu-x86_64"/g' "${INSTALL_DIR}/debootstrap_x86_64"
   chmod 777 "${INSTALL_DIR}/debootstrap_x86_64"
+  # debootstrap results in a much faster root fs than if you get a pre installed one (Idk why)
   "${INSTALL_DIR}/debootstrap_x86_64" \
   --variant=minbase \
   --exclude=systemd \
@@ -453,6 +500,7 @@ if [[ ! -d "${INSTALL_DIR}/debian-amd64" ]]; then
   bookworm \
   "${INSTALL_DIR}/debian-amd64" \
   http://ftp.debian.org/debian/
+  # Add our user files (These aren't properly created)
 cat <<- EOF > "${INSTALL_DIR}/debian-amd64/etc/passwd"
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
@@ -578,6 +626,7 @@ users:*::
 nogroup:*::
 main:!::
 EOF
+  # Create our main user, and add it's bashrc and profile
   if [[ ! -d "${INSTALL_DIR}/debian-amd64/home/main" ]]; then
     mkdir "${INSTALL_DIR}/debian-amd64/home/main"
   fi
@@ -731,16 +780,17 @@ fi
 EOF
 fi
 
+# Check if we have our debug amd64 dir
 if [[ ! -d "${INSTALL_DIR}/debian-amd64/debug" ]]; then
   mkdir "${INSTALL_DIR}/debian-amd64/debug"
 fi
 
+# Check if we have our debug arm64 dir
 if [[ ! -d "${INSTALL_DIR}/debian-arm64/debug" ]]; then
   mkdir "${INSTALL_DIR}/debian-arm64/debug"
 fi
 
-# Update sources.list
-
+# Update arm64 sources.list (For bookworm!)
 cat <<- EOF > "${INSTALL_DIR}/debian-arm64/etc/apt/sources.list"
 deb http://deb.debian.org/debian bookworm contrib main non-free non-free-firmware
 deb-src http://deb.debian.org/debian bookworm contrib main non-free non-free-firmware
@@ -758,6 +808,7 @@ deb http://deb.debian.org/debian-security/ bookworm-security contrib main non-fr
 deb-src http://deb.debian.org/debian-security/ bookworm-security contrib main non-free non-free-firmware
 EOF
 
+# Update amd64 sources.list (For bookworm!)
 cat <<- EOF > "${INSTALL_DIR}/debian-amd64/etc/apt/sources.list"
 deb http://deb.debian.org/debian bookworm contrib main non-free non-free-firmware
 deb-src http://deb.debian.org/debian bookworm contrib main non-free non-free-firmware
@@ -775,6 +826,7 @@ deb http://deb.debian.org/debian-security/ bookworm-security contrib main non-fr
 deb-src http://deb.debian.org/debian-security/ bookworm-security contrib main non-free non-free-firmware
 EOF
 
+# Add trixie sources for amd64 (For up-to-date packages)
 cat <<- EOF > "${INSTALL_DIR}/debian-amd64/etc/apt/sources.list.d/trixie.list"
 deb http://deb.debian.org/debian trixie contrib main non-free non-free-firmware
 deb-src http://deb.debian.org/debian trixie contrib main non-free non-free-firmware
@@ -792,6 +844,7 @@ deb http://deb.debian.org/debian-security/ trixie-security contrib main non-free
 deb-src http://deb.debian.org/debian-security/ trixie-security contrib main non-free non-free-firmware
 EOF
 
+# Add trixie sources for arm64 (For up-to-date packages)
 cat <<- EOF > "${INSTALL_DIR}/debian-arm64/etc/apt/sources.list.d/trixie.list"
 deb http://deb.debian.org/debian trixie contrib main non-free non-free-firmware
 deb-src http://deb.debian.org/debian trixie contrib main non-free non-free-firmware
@@ -810,7 +863,6 @@ deb-src http://deb.debian.org/debian-security/ trixie-security contrib main non-
 EOF
 
 # This is needed for "libelf1t64" (Required by our custom mesa drivers)
-
 cat <<- EOF > "${INSTALL_DIR}/debian-amd64/etc/apt/sources.list.d/mesa_compatibility.list"
 deb http://deb.debian.org/debian sid main
 EOF
@@ -819,6 +871,7 @@ cat <<- EOF > "${INSTALL_DIR}/debian-arm64/etc/apt/sources.list.d/mesa_compatibi
 deb http://deb.debian.org/debian sid main
 EOF
 
+# Add our /start_fex.sh script
 cat <<- EOF > "${INSTALL_DIR}/debian-arm64/start_fex.sh"
 #!/bin/bash
 FEXBash
@@ -827,8 +880,12 @@ EOF
 
 chmod 777 "${INSTALL_DIR}/debian-arm64/start_fex.sh"
 
+# Check if vulkan is installed
 if [[ ! -f "${INSTALL_DIR}/debian-amd64/debug/vulkan_installed" ]]; then
   echo "Setting up vulkan for AMD64"
+  # This script reinstalls coreutils and passwd, as it is not installed properly with our wonky debootstrap x86_64 fix
+  # This just gets /usr/bin/chown from the package, installs it as our fixed one, then reinstalls coreutils and our fixed passwd packages
+  # It then installs vulkan based off of our custom mesa drivers
 cat <<- EOF > "${INSTALL_DIR}/debian-amd64/update.sh"
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
@@ -875,8 +932,11 @@ EOF
   rm -rf "${INSTALL_DIR}/debian-amd64/update.sh"
 fi
 
+# Check if vulkan is installed for arm64
 if [[ ! -f "${INSTALL_DIR}/debian-arm64/debug/vulkan_installed" ]]; then
   echo "Setting up vulkan for ARM64"
+  # This script reinstalls coreutils and passwd, just to make sure they're installed correctly in the first place
+  # It then installs vulkan based off of our custom mesa drivers
 cat <<- EOF > "${INSTALL_DIR}/debian-arm64/update.sh"
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
@@ -923,9 +983,11 @@ EOF
   rm -rf "${INSTALL_DIR}/debian-arm64/update.sh"
 fi
 
+# Check if fex is installed, or if the user wants to install it manually
 if [[ ! -f "${INSTALL_DIR}/debian-arm64/debug/fex_installed" || "$1" == "update" ]]; then
   echo "Building and installing fex"
   rm -rf "${INSTALL_DIR}/debian-arm64/fex-install" &>/dev/null # Prevent directory is already there error
+  # It is much faster if we git clone out here, rather than in the proot environment
   git clone --recurse-submodules https://github.com/FEX-Emu/FEX.git "${INSTALL_DIR}/debian-arm64/fex-install"
   # Apply CPU spoof
   sed -i "$(grep -m1 -n "\"model name\\\\t:" "${INSTALL_DIR}/debian-arm64/fex-install/Source/Tools/LinuxEmulation/LinuxSyscalls/EmulatedFiles/EmulatedFiles.cpp" | cut -d: -f1)s/.*/cpu_stream << \"model name\\\\t: ${CPU_MODEL}\" << std::endl;/" "${INSTALL_DIR}/debian-arm64/fex-install/Source/Tools/LinuxEmulation/LinuxSyscalls/EmulatedFiles/EmulatedFiles.cpp"
@@ -941,6 +1003,8 @@ cd Build
 CC=clang CXX=clang++ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DUSE_LINKER=lld -DENABLE_LTO=True -DBUILD_TESTS=False -DENABLE_ASSERTIONS=False -DBUILD_THUNKS=True -G Ninja ..
 ninja
 ninja install
+cd /
+rm -rf /fex-install
 chmod 777 /start_fex.sh
 touch /debug/fex_installed
 EOF
@@ -959,13 +1023,14 @@ EOF
   "MOZ_FAKE_NO_SANDBOX=1" \
   "TERM=${TERM-xterm-256color}" \
   /bin/bash /install_fex.sh
+  # Fix our RootFS
 cat <<- EOF > "${INSTALL_DIR}/FEX/Config.json"
 {"Config": {"RootFS": "Debian_Bookworm"}}
 EOF
   rm -rf "${INSTALL_DIR}/debian-arm64/install_fex.sh"
 fi
 
-
+# Check if we need to have a user, or if we need to set a user
 if [[ ! -z "$1" ]]; then
   if [[ "$1" != "x11" && "$1" != "gl" && "$1" != "opengl" && "$1" != "update" ]]; then
     if [[ -z "$2" ]]; then
@@ -990,6 +1055,7 @@ if [[ ! -z "$1" ]]; then
   fi
 fi
 
+# These all start it, it is quite self explanatory from now on
 if [[ "$1" == "qemu" ]]; then
   start_x
 
