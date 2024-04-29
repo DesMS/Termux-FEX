@@ -95,3 +95,17 @@ SHARED_DIRECTORIES="/mygamesave" ./start.sh none main
 ```
 
 This is the same as `DIRECTORIES`, in that you use newlines to seperate them, but you don't use the same format, all you have to do is enter the path
+
+## Notes
+
+* This will use ~6gB (~6342083kB) of storage as of 04/29/2024. This may change between updates and between different days, due to debian updating their packages.
+* Currently, only Debian is supported, but in the future this may be expanded to include Ubuntu
+* NEVER TRY AND MODIFY YOUR AMD64 FILESYSTEM WHEN IN FEX (THIS IS NOT A ISSUE WITH THIS REPO, ITS AN ISSUE WITH FEX)
+* The CPU spoof doesn't work 100% of the time, and sometimes doesn't get applied
+
+## Compatibility
+
+| Tested Device | CPU | GPU | Supported | Vulkan Supported |
+| -- | -- | -- | -- | -- |
+| Samsung Galaxy™ S24 | Qualcomm® Snapdragon™ 8 Gen 3 for Galaxy | Qualcomm® Adreno™ 750 | :white_check_mark: | :white_check_mark: |
+| Samsung Galaxy™ S23 | Qualcomm® Snapdragon™ 8 Gen 2 | Qualcomm® Adreno™ 740 | :white_check_mark: | :grey_question: |
