@@ -1,3 +1,5 @@
+# v1.0.1
+
 # -------------------------
 # Start configuration
 # -------------------------
@@ -135,7 +137,7 @@ print_usage() {
   echo "[root] - The root user (Not recommended with FEX)"
   echo "[main] - A user with sudo privileges (Sudo does not work with FEX)"
   echo "If no user is chosen, it will default to \"root\""
-  echo -e "\nTermux FEX v1.0.0"
+  echo -e "\nTermux FEX v1.0.1"
 }
 
 # Store the pkg install commands (1 = required by another package, 2 = required)
