@@ -108,4 +108,4 @@ This is the same as `DIRECTORIES`, in that you use newlines to seperate them, bu
 | Tested Device | CPU | GPU | Supported | Vulkan Supported |
 | -- | -- | -- | -- | -- |
 | Samsung Galaxy™ S24 | Qualcomm® Snapdragon™ 8 Gen 3 for Galaxy | Qualcomm® Adreno™ 750 | :white_check_mark: | :white_check_mark: |
-| Samsung Galaxy™ S23 | Qualcomm® Snapdragon™ 8 Gen 2 | Qualcomm® Adreno™ 740 | :white_check_mark: | :grey_question: |
+| Samsung Galaxy™ S23 | Qualcomm® Snapdragon™ 8 Gen 2 | Qualcomm® Adreno™ 740 | :white_check_mark: | :white_check_mark: |
