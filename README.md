@@ -105,6 +105,16 @@ This is the same as `DIRECTORIES`, in that you use newlines to seperate them, bu
 
 ## Compatibility
 
+Key:
+
+:white_check_mark: -> Fully supported
+
+:grey_question: -> Likely supported
+
+:heavy_minus_sign: -> Likely to not be supported
+
+:x: -> Not supported
+
 | Tested Device | CPU | GPU | Supported | Vulkan Supported |
 | -- | -- | -- | -- | -- |
 | Samsung Galaxy™ S24 Ultra | Qualcomm® Snapdragon™ 8 Gen 3 for Galaxy | Qualcomm® Adreno™ 750 | :white_check_mark: | :white_check_mark: |
@@ -116,3 +126,7 @@ This is the same as `DIRECTORIES`, in that you use newlines to seperate them, bu
 | Samsung Galaxy™ S22 Ultra | Qualcomm® Snapdragon™ 8 Gen 1 | Qualcomm® Adreno™ 730 | :white_check_mark: | :grey_question: |
 | Samsung Galaxy™ S22+ | Qualcomm® Snapdragon™ 8 Gen 1 | Qualcomm® Adreno™ 730 | :white_check_mark: | :grey_question: |
 | Samsung Galaxy™ S22 | Qualcomm® Snapdragon™ 8 Gen 1 | Qualcomm® Adreno™ 730 | :white_check_mark: | :grey_question: |
+| Samsung Galaxy™ S21 Ultra | Qualcomm® Snapdragon™ 888 5G | Qualcomm® Adreno™ 660 | :white_check_mark: | :heavy_minus_sign: |
+| Samsung Galaxy™ S21+ | Qualcomm® Snapdragon™ 888 5G | Qualcomm® Adreno™ 660 | :white_check_mark: | :heavy_minus_sign: |
+| Samsung Galaxy™ S21 | Qualcomm® Snapdragon™ 888 5G | Qualcomm® Adreno™ 660 | :white_check_mark: | :heavy_minus_sign: |
+| Samsung Galaxy™ A32 5G | MediaTek® MT6853 Dimensity 720 5G | Arm Mali-G57 MC3? | :grey_question: | :x: |
