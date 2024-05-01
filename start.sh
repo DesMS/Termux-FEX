@@ -1082,7 +1082,7 @@ elif [[ "$1" == "fex" ]]; then
   start_x
 
   unset LD_PRELOAD
-  proot --link2symlink --kill-on-exit -L -w "$HOME_PROOT" -r "${INSTALL_DIR}/debian-arm64" -i "$USER_ID_PROOT" $ARGS -b "${INSTALL_DIR}/start_fex.sh:/start_fex.sh" \
+  proot --link2symlink --kill-on-exit -L -w "$HOME_PROOT" -r "${INSTALL_DIR}/debian-arm64" -i "$USER_ID_PROOT" $ARGS \
   /usr/bin/env -i \
   "GALLIUM_DRIVER=virpipe" \
   "DISPLAY=:0" \
