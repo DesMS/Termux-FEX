@@ -876,7 +876,7 @@ EOF
 # Add our /start_fex.sh script
 cat <<- EOF > "${INSTALL_DIR}/debian-arm64/start_fex.sh"
 #!/bin/bash
-FEXBash
+FEXBash bash --login
 exit \$?
 EOF
 
