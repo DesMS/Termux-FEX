@@ -103,6 +103,26 @@ This is the same as `DIRECTORIES`, in that you use newlines to seperate them, bu
 * NEVER TRY AND MODIFY YOUR AMD64 FILESYSTEM WHEN IN FEX (THIS IS NOT A ISSUE WITH THIS REPO, ITS AN ISSUE WITH FEX)
 * The CPU spoof doesn't work 100% of the time, and sometimes doesn't get applied
 
+## Usage
+
+If you want to install any package for your fex install, you *have* to do it through qemu
+
+Example usage:
+
+```sh
+./start.sh qemu root
+```
+
+once in the qemu root, you can use apt to install packages, or build and install them.
+
+Example hello i386 package:
+```sh
+dpkg --add-architecture i386
+apt install hello:i386
+```
+
+Note: At the moment, you can't run i386 programs inside of qemu, so you may not be able to install some packages. It is recommended to cross compile programs, and not run them unless you're in fex
+
 ## Compatibility
 
 Key:
